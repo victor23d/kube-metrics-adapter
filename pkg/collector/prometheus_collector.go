@@ -135,7 +135,7 @@ func NewPrometheusCollector(client kubernetes.Interface, promAPI promv1.API, hpa
 
 func (c *PrometheusCollector) GetMetrics() ([]CollectedMetric, error) {
 	// TODO: use real context
-	value, _, err := c.promAPI.Query(context.Background(), c.query, time.Now().UTC())
+	value, _, err := c.promAPI.Query(context.TODO(), c.query, time.Now().UTC())
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,8 @@ func (c *PrometheusCollector) GetMetrics() ([]CollectedMetric, error) {
 	switch c.metricType {
 	case autoscalingv2.ObjectMetricSourceType:
 		metricValue = CollectedMetric{
-			Type: c.metricType,
+			Namespace: c.hpa.Namespace,
+			Type:      c.metricType,
 			Custom: custom_metrics.MetricValue{
 				DescribedObject: c.objectReference,
 				Metric:          custom_metrics.MetricIdentifier{Name: c.metric.Name, Selector: c.metric.Selector},
@@ -184,7 +185,8 @@ func (c *PrometheusCollector) GetMetrics() ([]CollectedMetric, error) {
 		}
 	case autoscalingv2.ExternalMetricSourceType:
 		metricValue = CollectedMetric{
-			Type: c.metricType,
+			Namespace: c.hpa.Namespace,
+			Type:      c.metricType,
 			External: external_metrics.ExternalMetricValue{
 				MetricName:   c.metric.Name,
 				MetricLabels: c.metric.Selector.MatchLabels,
